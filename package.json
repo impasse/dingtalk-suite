@@ -1,0 +1,19 @@
+{
+  "name": "dingtalk-suite",
+  "version": "1.0.0",
+  "description": "Dingtalk Suite",
+  "main": "dist/",
+  "scripts": {
+    "prepublish": "cd src && typings install",
+    "build": "tsc -p src --outDir dist"
+  },
+  "author": "lingmm",
+  "license": "MIT",
+  "dependencies": {
+    "superagent": "^2.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^1.8.10",
+    "typings": "^1.3.3"
+  }
+}

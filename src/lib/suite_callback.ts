@@ -1,0 +1,75 @@
+import DingTalkCrypt from './crypto'
+import './common'
+
+interface Config {
+  token: string;
+  encodingAESKey: string;
+  suiteid: string;
+  ticketExpiresIn?: number;
+  saveTicket?: (Cache) => any;
+}
+
+interface Message {
+  EventType: string;
+  Random?: string;
+  SuiteTicket?: string;
+  TimeStamp?: string;
+  [propName: string]: any;
+}
+
+interface Callback {
+  (message: Message, req: any, res: any, next?: any): any;
+}
+
+interface Response {
+  msg_signature: string;
+  encrypt: string;
+  timeStamp: string;
+  nonce: string;
+}
+
+export default function (config: Config, callback: Callback): Function {
+  const dingCrypt = new DingTalkCrypt(config.token, config.encodingAESKey, config.suiteid || 'suite4xxxxxxxxxxxxxxx');
+  const ticketExpiresIn = config.ticketExpiresIn || 1000 * 60 * 20;
+
+  function genResponse(timestamp, nonce, text): Response {
+    const encrypt = dingCrypt.encrypt(text);
+    const msg_signature = dingCrypt.getSignature(timestamp, nonce, encrypt);
+    return {
+      msg_signature: msg_signature,
+      encrypt: encrypt,
+      timeStamp: timestamp,
+      nonce: nonce
+    }
+  }
+  return function (req: { query: any, body: any }, res: { status: Function, json: Function, reply?: Function }, next) {
+    const { signature, timestamp, nonce} = req.query;
+    const encrypt = req.body.encrypt;
+
+    if (signature !== dingCrypt.getSignature(timestamp, nonce, encrypt)) {
+      return res.status(401).end('Invalid signature');
+    }
+
+    let result = dingCrypt.decrypt(encrypt);
+    const message = JSON.parse(result.message) as Message;
+
+    if (message.EventType === 'check_update_suite_url' || message.EventType === 'check_create_suite_url') {
+      const Random = message.Random;
+      res.json(genResponse(timestamp, nonce, Random));
+    } else {
+      res.reply = function () {
+        res.json(genResponse(timestamp, nonce, 'success'));
+      }
+      if (config.saveTicket && message.EventType === 'suite_ticket') {
+        const data = {
+          value: message.SuiteTicket,
+          expires: Number(message.TimeStamp) + ticketExpiresIn
+        }
+        config.saveTicket(data);
+        res.reply();
+      } else {
+        callback(message, req, res, next);
+      }
+    }
+  }
+}
