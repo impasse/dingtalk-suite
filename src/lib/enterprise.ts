@@ -1,6 +1,5 @@
 import agent = require('superagent')
 import { createHash } from 'crypto'
-import './common'
 
 
 const BASE_URL = 'https://oapi.dingtalk.com';

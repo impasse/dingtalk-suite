@@ -1,6 +1,5 @@
 "use strict";
 const agent = require('superagent');
-require('./common');
 const SSO_BASE_URL = 'https://oapi.dingtalk.com';
 function wrapper(res) {
     const data = res.body;

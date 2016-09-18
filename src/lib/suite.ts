@@ -1,5 +1,4 @@
 import agent = require('superagent')
-import './common'
 
 const BASE_URL = 'https://oapi.dingtalk.com/service';
 const SSO_BASE_URL = 'https://oapi.dingtalk.com';

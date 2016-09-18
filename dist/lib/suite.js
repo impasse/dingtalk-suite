@@ -1,6 +1,5 @@
 "use strict";
 const agent = require('superagent');
-require('./common');
 const BASE_URL = 'https://oapi.dingtalk.com/service';
 const SSO_BASE_URL = 'https://oapi.dingtalk.com';
 const TICKET_EXPIRES_IN = 1000 * 60 * 20;

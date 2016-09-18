@@ -1,5 +1,4 @@
 import DingTalkCrypt from './crypto'
-import './common'
 
 interface Config {
   token: string;

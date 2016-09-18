@@ -1,6 +1,5 @@
 "use strict";
 const crypto_1 = require('./crypto');
-require('./common');
 function default_1(config, callback) {
     const dingCrypt = new crypto_1.default(config.token, config.encodingAESKey, config.suiteid || 'suite4xxxxxxxxxxxxxxx');
     const ticketExpiresIn = config.ticketExpiresIn || 1000 * 60 * 20;

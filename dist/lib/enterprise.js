@@ -1,7 +1,6 @@
 "use strict";
 const agent = require('superagent');
 const crypto_1 = require('crypto');
-require('./common');
 const BASE_URL = 'https://oapi.dingtalk.com';
 const TOKEN_EXPIRES_IN = 1000 * 60 * 60 * 2 - 10000;
 function wrapper(res) {

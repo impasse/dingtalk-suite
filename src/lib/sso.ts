@@ -1,5 +1,4 @@
 import agent = require('superagent')
-import './common'
 
 interface Config {
   SSOSecret: string;
