@@ -1,4 +1,4 @@
-import { createCipheriv, createHash, pseudoRandomBytes } from 'crypto'
+import { createCipheriv, createDecipheriv, createHash, pseudoRandomBytes } from 'crypto'
 
 type Bytes = string | Buffer;
 
@@ -46,7 +46,7 @@ export default class DingTalkCrypt {
   }
 
   decrypt(text: string): { message: string, id: string } {
-    const decipher = createCipheriv('aes-256-cbc', this.key, this.iv);
+    const decipher = createDecipheriv('aes-256-cbc', this.key, this.iv);
     decipher.setAutoPadding(false);
     let deciphered: any = Buffer.concat([decipher.update(text, 'base64' as any), decipher.final()]);
 

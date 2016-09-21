@@ -38,7 +38,7 @@ class DingTalkCrypt {
             .digest('hex');
     }
     decrypt(text) {
-        const decipher = crypto_1.createCipheriv('aes-256-cbc', this.key, this.iv);
+        const decipher = crypto_1.createDecipheriv('aes-256-cbc', this.key, this.iv);
         decipher.setAutoPadding(false);
         let deciphered = Buffer.concat([decipher.update(text, 'base64'), decipher.final()]);
         deciphered = PKCS7Encoder.decode(deciphered);
