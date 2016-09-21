@@ -2,11 +2,11 @@
 const crypto_1 = require('crypto');
 class PKCS7Encoder {
     static decode(text) {
-        let pad = +text[text.length - 1];
+        let pad = text[text.length - 1];
         if (pad < 1 || pad > 32) {
             pad = 0;
         }
-        return Buffer.from(text.slice(0, text.length - pad));
+        return text.slice(0, text.length - pad);
     }
     static encode(text) {
         const blockSize = 32;

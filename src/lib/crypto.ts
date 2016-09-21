@@ -3,12 +3,12 @@ import { createCipheriv, createHash, pseudoRandomBytes } from 'crypto'
 type Bytes = string | Buffer;
 
 class PKCS7Encoder {
-  static decode(text: Bytes): Buffer {
-    let pad = +text[text.length - 1];
+  static decode(text: Bytes): Bytes {
+    let pad = text[text.length - 1];
     if (pad < 1 || pad > 32) {
       pad = 0;
     }
-    return Buffer.from(text.slice(0, text.length - pad) as any);
+    return text.slice(0, text.length - (pad as number));
   }
 
   static encode(text: Bytes): Buffer {
@@ -48,7 +48,7 @@ export default class DingTalkCrypt {
   decrypt(text: string): { message: string, id: string } {
     const decipher = createCipheriv('aes-256-cbc', this.key, this.iv);
     decipher.setAutoPadding(false);
-    let deciphered = Buffer.concat([decipher.update(text, 'base64' as any), decipher.final()]);
+    let deciphered: any = Buffer.concat([decipher.update(text, 'base64' as any), decipher.final()]);
 
     deciphered = PKCS7Encoder.decode(deciphered);
 
