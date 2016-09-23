@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "scripts": {
-    "prepublish": "tsc -p src --outDir dist"
+    "postinstall": "tsc -p src --outDir dist"
   },
   "author": "lingmm <i@zyy.cat>",
   "license": "MIT",
