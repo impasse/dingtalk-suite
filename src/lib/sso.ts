@@ -1,8 +1,33 @@
 import agent = require('superagent')
 
-interface Config {
+export interface Config {
   SSOSecret: string;
   corpid: string;
+}
+
+export interface Result {
+  errcode: number,
+  errmsg: string
+}
+
+export type SSOToken = Result & {
+  access_token: string
+}
+
+export type UserInfo = Result & {
+  corp_info: Array<{
+    corp_name: string,
+    corpid: string
+  }>,
+  errcode: number,
+  errmsg: string,
+  is_sys: boolean,
+  user_info: Array<{
+    avatar: string,
+    email: string,
+    name: string,
+    userid: string
+  }>
 }
 
 const SSO_BASE_URL = 'https://oapi.dingtalk.com';
@@ -26,7 +51,7 @@ export default class Api {
     this.corpid = conf.corpid;
   }
 
-  getSSOToken() {
+  getSSOToken(): Promise<SSOToken> {
     return agent.get(SSO_BASE_URL + '/sso/gettoken')
       .query({
         corpid: this.corpid,
@@ -35,7 +60,7 @@ export default class Api {
       .then(wrapper);
   }
 
-  getSSOUserInfoByCode(code) {
+  getSSOUserInfoByCode(code): Promise<UserInfo> {
     return this.getSSOToken()
       .then(token => {
         return agent.get(SSO_BASE_URL + '/sso/getuserinfo')
@@ -47,7 +72,7 @@ export default class Api {
       });
   }
 
-  generateAuthUrl(redirect_url) {
+  generateAuthUrl(redirect_url): string {
     return 'https://oa.dingtalk.com/omp/api/micro_app/admin/landing?corpid=' + this.corpid + '&redirect_url=' + redirect_url;
   }
 }

@@ -1,6 +1,6 @@
 import DingTalkCrypt from './crypto'
 
-interface Config {
+export interface Config {
   token: string;
   encodingAESKey: string;
   suiteid: string;
@@ -8,7 +8,7 @@ interface Config {
   saveTicket?: (Cache) => any;
 }
 
-interface Message {
+export interface Message {
   EventType: string;
   Random?: string;
   SuiteTicket?: string;
@@ -16,7 +16,7 @@ interface Message {
   [propName: string]: any;
 }
 
-interface Callback {
+export interface Callback {
   (message: Message, req: any, res: any, next?: any): any;
 }
 
@@ -27,7 +27,7 @@ interface Response {
   nonce: string;
 }
 
-export default function (config: Config, callback: Callback): Function {
+export default function CallBack(config: Config, callback: Callback): Function {
   const dingCrypt = new DingTalkCrypt(config.token, config.encodingAESKey, config.suiteid || 'suite4xxxxxxxxxxxxxxx');
   const ticketExpiresIn = config.ticketExpiresIn || 1000 * 60 * 20;
 

@@ -5,7 +5,12 @@ import { createHash } from 'crypto'
 const BASE_URL = 'https://oapi.dingtalk.com';
 const TOKEN_EXPIRES_IN = 1000 * 60 * 60 * 2 - 10000;
 
-interface Config {
+export interface Cache {
+  value: string;
+  expires: number;
+}
+
+export interface Config {
   corpid: string;
   secret: string;
   getJsApiTicket?: () => Promise<Cache>;
@@ -13,6 +18,64 @@ interface Config {
   getToken?: () => Promise<Cache>;
   saveToken?: (Cache) => any;
   token_expires_in?: number;
+}
+
+export interface Result {
+  errcode: number,
+  errmsg: string
+}
+
+export interface Department {
+  id: number,
+  name: string,
+  parentid: number,
+  createDeptGroup: boolean,
+  autoAddUser: boolean
+}
+
+export type Departments = Result & {
+  department: Array<Department>
+}
+
+export type DepartmentDetail = Result & {
+  id: number,
+  name: string,
+  order: number,
+  parentid: number,
+  createDeptGroup: boolean,
+  autoAddUser: boolean,
+  deptHiding: boolean,
+  deptPerimits: string,
+  userPerimits: string,
+  outerDept: boolean,
+  outerPermitDepts: string,
+  outerPermitUsers: string,
+  orgDeptOwner: string,
+  deptManagerUseridList: string
+}
+
+export interface UserDetail {
+  userid: string,
+  dingId: string,
+  mobile: string,
+  tel: string,
+  workPlace: string,
+  remark: string,
+  order: number,
+  isAdmin: boolean,
+  isBoss: boolean,
+  isHide: boolean,
+  isLeader: boolean,
+  name: string,
+  active: boolean,
+  department: Array<number>
+  position: string,
+  email: string,
+  avatar: string,
+  jobnumber: string,
+  extattr: {
+    [attrName: string]: string
+  }
 }
 
 function wrapper(res) {
@@ -97,7 +160,7 @@ export default class Api {
     }
   }
 
-  get(path, data: { access_token: string }) {
+  get(path, data: { access_token: string }): Promise<Result> {
     return this.getLatestToken().then(token => {
       data.access_token = token.value;
       return agent.get(BASE_URL + path)
@@ -106,7 +169,7 @@ export default class Api {
     });
   }
 
-  post(path, data) {
+  post(path, data): Promise<Result> {
     return this.getLatestToken()
       .then(token => {
         return agent.post(BASE_URL + path)
@@ -116,7 +179,7 @@ export default class Api {
       });
   }
 
-  getDepartments() {
+  getDepartments(): Promise<Departments> {
     return this.getLatestToken()
       .then(function (token) {
         return agent.get(BASE_URL + '/department/list')
@@ -125,7 +188,7 @@ export default class Api {
       });
   }
 
-  getDepartmentDetail(id: number) {
+  getDepartmentDetail(id: number): Promise<DepartmentDetail> {
     return this.getLatestToken()
       .then(function (token) {
         return agent.get(BASE_URL + '/department/get')
@@ -134,7 +197,7 @@ export default class Api {
       });
   }
 
-  createDepartment(name: string, opts: { name?: string, parentid?: any }) {
+  createDepartment(name: string, opts: { name?: string, parentid?: any }): Promise<Result & { id: number }> {
     return this.getLatestToken()
       .then(function (token) {
         if (typeof opts === 'object') {
@@ -153,7 +216,7 @@ export default class Api {
       });
   }
 
-  updateDepartment(id: number, opts) {
+  updateDepartment(id: number, opts): Promise<Result> {
     return this.getLatestToken()
       .then(function (token) {
         if (typeof opts === 'object') {
@@ -168,7 +231,7 @@ export default class Api {
       });
   }
 
-  deleteDepartment(id: number) {
+  deleteDepartment(id: number): Promise<Result> {
     return this.getLatestToken()
       .then(function (token) {
         return agent.get(BASE_URL + '/department/delete')
@@ -177,7 +240,7 @@ export default class Api {
       });
   }
 
-  createMicroApp(data: Object) {
+  createMicroApp(data: Object): Promise<Result & { id: number }> {
     return this.getLatestToken()
       .then(function (token) {
         return agent.post(BASE_URL + '/microapp/create')
@@ -187,7 +250,7 @@ export default class Api {
       });
   }
 
-  sendToConversation() {
+  sendToConversation(): Promise<Result & { receiver: string }> {
     return this.getLatestToken()
       .then(function (token) {
         return agent.post(BASE_URL + '/message/send_to_conversation')
@@ -196,7 +259,11 @@ export default class Api {
       });
   }
 
-  send(agentid: number, options) {
+  send(agentid: number, options): Promise<Result & {
+    invaliduser: string,
+    invalidparty: string,
+    messageId: string
+  }> {
     return this.getLatestToken()
       .then(function (token) {
         options.agentid = agentid + '';
@@ -207,7 +274,13 @@ export default class Api {
       });
   }
 
-  getDepartmentUsers(id: number) {
+  getDepartmentUsers(id: number): Promise<Result & {
+    hasMore: boolean,
+    userlist: Array<{
+      userid: string,
+      name: string
+    }>
+  }> {
     return this.getLatestToken()
       .then(function (token) {
         return agent.get(BASE_URL + '/user/simplelist')
@@ -216,7 +289,10 @@ export default class Api {
       });
   }
 
-  getDepartmentUsersDetail(id: number) {
+  getDepartmentUsersDetail(id: number): Promise<Result & {
+    hasMore: boolean,
+    userlist: Array<UserDetail>
+  }> {
     return this.getLatestToken()
       .then(function (token) {
         return agent.get(BASE_URL + '/user/list')
@@ -225,7 +301,7 @@ export default class Api {
       });
   }
 
-  getUser(id: number) {
+  getUser(id: number): Promise<UserDetail> {
     return this.getLatestToken()
       .then(function (token) {
         return agent.get(BASE_URL + '/user/get')
@@ -234,7 +310,12 @@ export default class Api {
       });
   }
 
-  getUserInfoByCode(code: string) {
+  getUserInfoByCode(code: string): Promise<Result & {
+    userid: string,
+    deviceId: string,
+    is_sys: boolean,
+    sys_level: number
+  }> {
     return this.getLatestToken()
       .then(function (token) {
         return agent.get(BASE_URL + '/user/getuserinfo')
@@ -252,7 +333,7 @@ export default class Api {
       });
   }
 
-  getLatestJsApiTicket() {
+  getLatestJsApiTicket(): Promise<Cache> {
     if (!this.jsapi_ticket_cache) {
       return this.getJsApiTicket().then((data) => {
         this.jsapi_ticket_cache = data || { value: null, expires: 0 };
@@ -272,7 +353,7 @@ export default class Api {
     }
   }
 
-  getUrlSign(url) {
+  getUrlSign(url): any {
     return this.getLatestJsApiTicket().then(function (data) {
       let result: any = {
         noncestr: createNonceStr(),
@@ -290,12 +371,12 @@ export default class Api {
     })
   }
 
-  fromSuite(newSuiteApi, conf) {
+  fromSuite(newSuiteApi, conf): any {
     Object.assign(this, conf);
     this.newSuiteApi = newSuiteApi;
   }
 
-  ctrl(corpid, permanent_code, token_cache, jsapi_ticket_cache) {
+  ctrl(corpid, permanent_code, token_cache, jsapi_ticket_cache): this {
     this.corpid = corpid;
     this.token_cache = token_cache;
     this.jsapi_ticket_cache = jsapi_ticket_cache;
@@ -305,6 +386,6 @@ export default class Api {
     api._get_access_token = function () {
       return newSuiteApi.getCorpToken(corpid, permanent_code);
     }
-    return api;
+    return api as this;
   }
 }

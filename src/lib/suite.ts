@@ -5,14 +5,82 @@ const SSO_BASE_URL = 'https://oapi.dingtalk.com';
 const TICKET_EXPIRES_IN = 1000 * 60 * 20;
 const TOKEN_EXPIRES_IN = 1000 * 60 * 60 * 2 - 10000;
 
+export interface Cache {
+  value: string;
+  expires: number;
+}
 
-interface Config {
+export interface Config {
   suiteid: string;
   secret: string;
   token_expires_in: number;
   getTicket: () => Promise<Cache>;
   getToken: () => Promise<Cache>;
   saveToken: (Cache) => any;
+}
+
+export interface Result {
+  errcode: number,
+  errmsg: string,
+  [propName: string]: any
+}
+
+
+export interface PermanentCode {
+  permanent_code: string,
+  auth_corp_info:
+  {
+    corpid: string,
+    corp_name: string
+  }
+}
+
+export interface CorpToken {
+  access_token: string,
+  expires_in: number
+}
+
+export type AuthInfo = Result & {
+  auth_corp_info: {
+    corp_logo_url: string,
+    corp_name: string,
+    corpid: string,
+    industry: string,
+    invite_code: string,
+    license_code: string,
+    auth_channel: string,
+    is_authenticated: boolean,
+    auth_level: number,
+    invite_url: string
+  },
+  auth_user_info:
+  {
+    userId: string
+  },
+  auth_info: {
+    agent: [{
+      agent_name: string,
+      agentid: number,
+      appid: number,
+      logo_url: string
+    }
+      , {
+        agent_name: string,
+        agentid: number,
+        appid: number,
+        logo_url: string
+      }]
+  }
+}
+
+export type Agent = Result & {
+  agentid: number,
+  name: string,
+  logo_url: string,
+  description: string,
+  close: number,
+  errcode: number,
+  errmsg: string
 }
 
 
@@ -57,7 +125,7 @@ export default class Api {
     });
   }
 
-  getLatestTicket() {
+  getLatestTicket(): Promise<Cache> {
     const now = Date.now();
     if (this.ticket_cache.expires <= now) {
       return this.getTicket();
@@ -77,7 +145,7 @@ export default class Api {
     });
   }
 
-  getLatestToken() {
+  getLatestToken(): Promise<Cache> {
     if (!this.token_cache) {
       return this.getToken().then(token => {
         if (!token) {
@@ -111,7 +179,7 @@ export default class Api {
     }
   }
 
-  getPermanentCode(tmp_auth_code) {
+  getPermanentCode(tmp_auth_code): Promise<PermanentCode> {
     return this.getLatestToken().then(function (token) {
       return agent.post(BASE_URL + '/get_permanent_code')
         .query({ suite_access_token: token.value })
@@ -120,7 +188,7 @@ export default class Api {
     });
   }
 
-  getCorpToken(auth_corpid, permanent_code) {
+  getCorpToken(auth_corpid, permanent_code): Promise<CorpToken> {
     return this.getLatestToken().then(function (token) {
       return agent.post(BASE_URL + '/get_corp_token')
         .query({ suite_access_token: token.value })
@@ -132,7 +200,7 @@ export default class Api {
     });
   }
 
-  getAuthInfo(auth_corpid, permanent_code) {
+  getAuthInfo(auth_corpid, permanent_code): Promise<AuthInfo> {
     return this.getLatestToken().then(token => {
       return agent.post(BASE_URL + '/get_auth_info')
         .query({ suite_access_token: token.value })
@@ -141,7 +209,7 @@ export default class Api {
     });
   }
 
-  getAgent(agentid, auth_corpid, permanent_code) {
+  getAgent(agentid, auth_corpid, permanent_code): Promise<Agent> {
     return this.getLatestToken().then(token => {
       return agent.post(BASE_URL + '/get_agent')
         .query({ suite_access_token: token.value })
@@ -155,7 +223,7 @@ export default class Api {
     });
   }
 
-  activateSuite(auth_corpid, permanent_code) {
+  activateSuite(auth_corpid, permanent_code): Promise<Result> {
     return this.getLatestToken().then(token => {
       return agent.post(BASE_URL + '/activate_suite')
         .query({ suite_access_token: token.value })
@@ -164,7 +232,7 @@ export default class Api {
     });
   }
 
-  setCorpIpwhitelist(auth_corpid, ip_whitelist) {
+  setCorpIpwhitelist(auth_corpid, ip_whitelist): Promise<Result> {
     return this.getLatestToken().then(token => {
       return agent.post(BASE_URL + '/set_corp_ipwhitelist')
         .query({ suite_access_token: token.value })

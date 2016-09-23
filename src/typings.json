@@ -1,7 +1,0 @@
-{
-  "dependencies": {},
-  "globalDependencies": {
-    "node": "registry:dt/node#6.0.0+20160914131343",
-    "superagent": "registry:dt/superagent#2.0.0+20160906143408"
-  }
-}
