@@ -68,7 +68,7 @@ export default class Api {
             code: code,
             access_token: token.access_token
           })
-          .then(wrapper);
+          .then(wrapper) as Promise<UserInfo>;
       });
   }
 

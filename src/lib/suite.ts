@@ -134,14 +134,14 @@ export default class Api {
     }
   }
 
-  _get_access_token() {
+  _get_access_token(): Promise<{ suite_access_token: string }> {
     return this.getLatestTicket().then(ticket => {
       const data = {
         suite_key: this.suite_key,
         suite_secret: this.suite_secret,
         suite_ticket: ticket.value
       };
-      return agent.post(BASE_URL + '/get_suite_token').send(data).then(wrapper);
+      return agent.post(BASE_URL + '/get_suite_token').send(data).then(wrapper) as Promise<{ suite_access_token: string }>;
     });
   }
 
@@ -184,7 +184,7 @@ export default class Api {
       return agent.post(BASE_URL + '/get_permanent_code')
         .query({ suite_access_token: token.value })
         .send({ tmp_auth_code: tmp_auth_code })
-        .then(wrapper);
+        .then(wrapper) as Promise<PermanentCode>;
     });
   }
 
@@ -196,7 +196,7 @@ export default class Api {
           auth_corpid: auth_corpid,
           permanent_code: permanent_code
         })
-        .then(wrapper);
+        .then(wrapper) as Promise<CorpToken>;
     });
   }
 
@@ -205,7 +205,7 @@ export default class Api {
       return agent.post(BASE_URL + '/get_auth_info')
         .query({ suite_access_token: token.value })
         .send({ suite_key: this.suite_key, auth_corpid: auth_corpid, permanent_code: permanent_code })
-        .then(wrapper);
+        .then(wrapper) as Promise<AuthInfo>;
     });
   }
 
@@ -219,7 +219,7 @@ export default class Api {
           permanent_code: permanent_code,
           agentid: agentid
         })
-        .then(wrapper);
+        .then(wrapper) as Promise<Agent>;
     });
   }
 
@@ -228,7 +228,7 @@ export default class Api {
       return agent.post(BASE_URL + '/activate_suite')
         .query({ suite_access_token: token.value })
         .send({ suite_key: this.suite_key, auth_corpid: auth_corpid, permanent_code: permanent_code })
-        .then(wrapper);
+        .then(wrapper) as Promise<Result>;
     });
   }
 
@@ -237,7 +237,7 @@ export default class Api {
       return agent.post(BASE_URL + '/set_corp_ipwhitelist')
         .query({ suite_access_token: token.value })
         .send({ suite_key: this.suite_key, auth_corpid: auth_corpid, ip_whitelist: ip_whitelist })
-        .then(wrapper);
+        .then(wrapper) as Promise<Result>;
     });
   }
 

@@ -1,22 +1,26 @@
 {
   "name": "dingtalk-suite",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Dingtalk Suite",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
-  "scripts": {
-    "postinstall": "tsc -p src --outDir dist"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lingmm/dingtalk-suite.git"
   },
-  "author": "lingmm <i@zyy.cat>",
+  "scripts": {
+    "prepublish": "tsc -p src --outDir dist"
+  },
+  "author": "lingmm <i@shyling.com>",
   "license": "MIT",
   "dependencies": {
-    "@types/express": "4.0.33",
-    "@types/node": "6.0.40",
-    "@types/superagent": "2.0.34",
-    "superagent": "2.3.0"
+    "@types/express": "^4.0.35",
+    "@types/node": "^7.0.4",
+    "@types/superagent": "^2.0.36",
+    "superagent": "^3.4.1"
   },
   "devDependencies": {
-    "typescript": "2.0.3"
+    "typescript": "^2.1.5"
   }
 }

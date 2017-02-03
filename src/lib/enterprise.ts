@@ -165,7 +165,7 @@ export default class Api {
       data.access_token = token.value;
       return agent.get(BASE_URL + path)
         .query(data)
-        .then(wrapper);
+        .then(wrapper) as Promise<Result>;
     });
   }
 
@@ -175,7 +175,7 @@ export default class Api {
         return agent.post(BASE_URL + path)
           .query({ access_token: token.value })
           .send(data)
-          .then(wrapper);
+          .then(wrapper) as Promise<Result>;
       });
   }
 
@@ -184,7 +184,7 @@ export default class Api {
       .then(function (token) {
         return agent.get(BASE_URL + '/department/list')
           .query({ access_token: token.value })
-          .then(wrapper);
+          .then(wrapper) as Promise<Result>;
       });
   }
 
@@ -193,7 +193,7 @@ export default class Api {
       .then(function (token) {
         return agent.get(BASE_URL + '/department/get')
           .query({ id: id, access_token: token.value })
-          .then(wrapper);
+          .then(wrapper) as Promise<Result>;
       });
   }
 
@@ -212,7 +212,7 @@ export default class Api {
         return agent.post(BASE_URL + '/department/create')
           .query({ access_token: token.value })
           .send(opts)
-          .then(wrapper);
+          .then(wrapper) as Promise<Result & { id: number }>;
       });
   }
 
@@ -227,7 +227,7 @@ export default class Api {
         return agent.post(BASE_URL + '/department/update')
           .query({ access_token: token.value })
           .send(opts)
-          .then(wrapper);
+          .then(wrapper) as Promise<Result>;
       });
   }
 
@@ -236,7 +236,7 @@ export default class Api {
       .then(function (token) {
         return agent.get(BASE_URL + '/department/delete')
           .query({ id: id, access_token: token.value })
-          .then(wrapper);
+          .then(wrapper) as Promise<Result>;
       });
   }
 
@@ -246,7 +246,7 @@ export default class Api {
         return agent.post(BASE_URL + '/microapp/create')
           .query({ access_token: token.value })
           .send(data)
-          .then(wrapper);
+          .then(wrapper) as Promise<Result & { id: number }>;
       });
   }
 
@@ -255,7 +255,7 @@ export default class Api {
       .then(function (token) {
         return agent.post(BASE_URL + '/message/send_to_conversation')
           .query({ access_token: token.value })
-          .then(wrapper);
+          .then(wrapper) as Promise<Result & { receiver: string }>;
       });
   }
 
@@ -270,7 +270,11 @@ export default class Api {
         return agent.post(BASE_URL + '/message/send')
           .query({ access_token: token.value })
           .send(options)
-          .then(wrapper);
+          .then(wrapper) as Promise<Result & {
+            invaliduser: string,
+            invalidparty: string,
+            messageId: string
+          }>;
       });
   }
 
@@ -285,7 +289,13 @@ export default class Api {
       .then(function (token) {
         return agent.get(BASE_URL + '/user/simplelist')
           .query({ department_id: id, access_token: token.value })
-          .then(wrapper);
+          .then(wrapper) as Promise<Result & {
+            hasMore: boolean,
+            userlist: Array<{
+              userid: string,
+              name: string
+            }>
+          }>;
       });
   }
 
@@ -297,7 +307,10 @@ export default class Api {
       .then(function (token) {
         return agent.get(BASE_URL + '/user/list')
           .query({ department_id: id, access_token: token.value })
-          .then(wrapper);
+          .then(wrapper) as Promise<Result & {
+            hasMore: boolean,
+            userlist: Array<UserDetail>
+          }>;
       });
   }
 
@@ -306,7 +319,7 @@ export default class Api {
       .then(function (token) {
         return agent.get(BASE_URL + '/user/get')
           .query({ userid: id, access_token: token.value })
-          .then(wrapper);
+          .then(wrapper) as Promise<UserDetail>;
       });
   }
 
@@ -320,7 +333,12 @@ export default class Api {
       .then(function (token) {
         return agent.get(BASE_URL + '/user/getuserinfo')
           .query({ code: code, access_token: token.value })
-          .then(wrapper);
+          .then(wrapper) as Promise<Result & {
+            userid: string,
+            deviceId: string,
+            is_sys: boolean,
+            sys_level: number
+          }>;
       });
   }
 
@@ -330,7 +348,7 @@ export default class Api {
         return agent.get(BASE_URL + '/get_jsapi_ticket')
           .query({ type: 'jsapi', access_token: token.value })
           .then(wrapper);
-      });
+      }) as any;
   }
 
   getLatestJsApiTicket(): Promise<Cache> {
