@@ -16,8 +16,12 @@ export interface Message {
   [propName: string]: any;
 }
 
-export interface Callback {
+export interface ExpressCallback {
   (message: Message, req: any, res: any, next?: any): any;
+}
+
+export interface Koa2Callback {
+  (message: Message, ctx: any, next?: any): any;
 }
 
 interface Response {
@@ -27,7 +31,7 @@ interface Response {
   nonce: string;
 }
 
-export default function CallBack(config: Config, callback: Callback): Object {
+export default function CallBack(config: Config, callback: ExpressCallback | Koa2Callback): Object {
   const dingCrypt = new DingTalkCrypt(config.token, config.encodingAESKey, config.suiteid || 'suite4xxxxxxxxxxxxxxx');
   const ticketExpiresIn = config.ticketExpiresIn || 1000 * 60 * 20;
 
@@ -42,9 +46,9 @@ export default function CallBack(config: Config, callback: Callback): Object {
     }
   }
 
-  function koa2(ctx: { query: any, body: any, status: number, [key: string]: any }, next: any) {
+  function koa2(ctx: { query: any, request: any, body: any, status: number, [key: string]: any }, next: any) {
     const { signature, timestamp, nonce} = ctx.query;
-    const encrypt = ctx.body.encrypt;
+    const encrypt = ctx.request.body.encrypt;
 
     if (signature !== dingCrypt.getSignature(timestamp, nonce, encrypt)) {
       ctx.status = 401;
@@ -70,7 +74,7 @@ export default function CallBack(config: Config, callback: Callback): Object {
         config.saveTicket(data);
         ctx['reply']();
       } else {
-        callback(message, ctx, next);
+        (callback as Koa2Callback)(message, ctx, next);
       }
     }
   }
@@ -101,7 +105,7 @@ export default function CallBack(config: Config, callback: Callback): Object {
         config.saveTicket(data);
         res.reply();
       } else {
-        callback(message, req, res, next);
+        (callback as ExpressCallback)(message, req, res, next);
       }
     }
   }
