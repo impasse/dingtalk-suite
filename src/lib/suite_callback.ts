@@ -27,7 +27,7 @@ interface Response {
   nonce: string;
 }
 
-export default function CallBack(config: Config, callback: Callback): Function {
+export default function CallBack(config: Config, callback: Callback): Object {
   const dingCrypt = new DingTalkCrypt(config.token, config.encodingAESKey, config.suiteid || 'suite4xxxxxxxxxxxxxxx');
   const ticketExpiresIn = config.ticketExpiresIn || 1000 * 60 * 20;
 
@@ -41,7 +41,41 @@ export default function CallBack(config: Config, callback: Callback): Function {
       nonce: nonce
     }
   }
-  return function (req: { query: any, body: any }, res: { status: Function, json: Function, reply?: Function }, next) {
+
+  function koa2(ctx: { query: any, body: any, status: number, [key: string]: any }, next: any) {
+    const { signature, timestamp, nonce} = ctx.query;
+    const encrypt = ctx.body.encrypt;
+
+    if (signature !== dingCrypt.getSignature(timestamp, nonce, encrypt)) {
+      ctx.status = 401;
+      ctx.body = 'Invalid signature';
+      return;
+    }
+
+    let result = dingCrypt.decrypt(encrypt);
+    const message = JSON.parse(result.message) as Message;
+
+    if (message.EventType === 'check_update_suite_url' || message.EventType === 'check_create_suite_url') {
+      const Random = message.Random;
+      ctx.body = genResponse(timestamp, nonce, Random);
+    } else {
+      ctx['reply'] = function () {
+        ctx.body = genResponse(timestamp, nonce, 'success');
+      }
+      if (config.saveTicket && message.EventType === 'suite_ticket') {
+        const data = {
+          value: message.SuiteTicket,
+          expires: Number(message.TimeStamp) + ticketExpiresIn
+        }
+        config.saveTicket(data);
+        ctx['reply']();
+      } else {
+        callback(message, ctx, next);
+      }
+    }
+  }
+
+  function express(req: { query: any, body: any }, res: { status: Function, json: Function, reply?: Function }, next) {
     const { signature, timestamp, nonce} = req.query;
     const encrypt = req.body.encrypt;
 
@@ -70,5 +104,9 @@ export default function CallBack(config: Config, callback: Callback): Function {
         callback(message, req, res, next);
       }
     }
+  }
+  return {
+    koa2,
+    express
   }
 }
