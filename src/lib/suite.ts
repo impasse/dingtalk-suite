@@ -3,7 +3,6 @@ import agent = require('superagent')
 const BASE_URL = 'https://oapi.dingtalk.com/service';
 const SSO_BASE_URL = 'https://oapi.dingtalk.com';
 const TICKET_EXPIRES_IN = 1000 * 60 * 20;
-const TOKEN_EXPIRES_IN = 1000 * 60 * 60 * 2 - 10000;
 
 export interface Cache {
   value: string;
@@ -13,10 +12,8 @@ export interface Cache {
 export interface Config {
   suiteid: string;
   secret: string;
-  token_expires_in: number;
   getTicket: () => Promise<Cache>;
-  getToken: () => Promise<Cache>;
-  saveToken: (Cache) => any;
+  ticket_expires_in: number;
 }
 
 export interface Result {
@@ -99,30 +96,18 @@ export default class Api {
   suite_key: string;
   suite_secret: string;
   ticket_expires_in: number;
-  token_expires_in: number;
   getTicket: () => Promise<Cache>;
   ticket_cache: Cache;
-  token_cache: Cache;
-  getToken: () => Promise<Cache>;
-  saveToken: (Cache) => any;
 
   constructor(conf: Config) {
     this.suite_key = conf.suiteid;
     this.suite_secret = conf.secret;
-    this.ticket_expires_in = TICKET_EXPIRES_IN;
-    this.token_expires_in = conf.token_expires_in || TOKEN_EXPIRES_IN;
+    this.ticket_expires_in = conf.ticket_expires_in || TICKET_EXPIRES_IN;
     this.getTicket = conf.getTicket;
     this.ticket_cache = {
       expires: 0,
       value: null
     };
-    this.token_cache = null;
-    this.getToken = conf.getToken || (() => {
-      return Promise.resolve(this.token_cache);
-    });
-    this.saveToken = conf.saveToken || ((token) => {
-      this.token_cache = token;
-    });
   }
 
   getLatestTicket(): Promise<Cache> {
@@ -134,7 +119,7 @@ export default class Api {
     }
   }
 
-  _get_access_token(): Promise<{ suite_access_token: string }> {
+  _get_access_token(): Promise<{ suite_access_token: string, expires_in: number }> {
     return this.getLatestTicket().then(ticket => {
       const data = {
         suite_key: this.suite_key,
@@ -145,38 +130,12 @@ export default class Api {
     });
   }
 
-  getLatestToken(): Promise<Cache> {
-    if (!this.token_cache) {
-      return this.getToken().then(token => {
-        if (!token) {
-          const now = Date.now();
-          return this._get_access_token().then(token => {
-            this.token_cache = {
-              value: token.suite_access_token,
-              expires: now + this.token_expires_in
-            };
-            this.saveToken(this.token_cache);
-            return this.token_cache;
-          });
-        }
-        this.token_cache = token;
-        return this.getLatestToken();
-      });
-    } else {
-      const now = Date.now();
-      if (this.token_cache.expires <= now) {
-        return this._get_access_token().then(token => {
-          this.token_cache = {
-            value: token.suite_access_token,
-            expires: now + this.token_expires_in
-          };
-          this.saveToken(this.token_cache);
-          return this.token_cache;
-        });
-      } else {
-        return Promise.resolve(this.token_cache);
-      }
-    }
+  async getLatestToken(): Promise<Cache> {
+    let token = await this._get_access_token();
+    return {
+      value: token.suite_access_token,
+      expires: Date.now() + token.expires_in
+    };
   }
 
   getPermanentCode(tmp_auth_code): Promise<PermanentCode> {

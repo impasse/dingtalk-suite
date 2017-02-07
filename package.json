@@ -1,6 +1,6 @@
 {
   "name": "dingtalk-suite",
-  "version": "1.0.7",
+  "version": "1.0.14",
   "description": "Dingtalk Suite",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

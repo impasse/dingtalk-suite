@@ -46,7 +46,7 @@ export default function CallBack(config: Config, callback: ExpressCallback | Koa
     }
   }
 
-  function koa2(ctx: { query: any, request: any, body: any, status: number, [key: string]: any }, next: any) {
+  async function koa2(ctx: { query: any, request: any, body: any, status: number, [key: string]: any }, next: any) {
     const { signature, timestamp, nonce} = ctx.query;
     const encrypt = ctx.request.body.encrypt;
 
@@ -69,12 +69,12 @@ export default function CallBack(config: Config, callback: ExpressCallback | Koa
       if (config.saveTicket && message.EventType === 'suite_ticket') {
         const data = {
           value: message.SuiteTicket,
-          expires: Number(message.TimeStamp) + ticketExpiresIn
+          expires: parseInt(message.TimeStamp, 10) + ticketExpiresIn
         }
         config.saveTicket(data);
         ctx['reply']();
       } else {
-        (callback as Koa2Callback)(message, ctx, next);
+        return (callback as Koa2Callback)(message, ctx, next);
       }
     }
   }
@@ -100,12 +100,12 @@ export default function CallBack(config: Config, callback: ExpressCallback | Koa
       if (config.saveTicket && message.EventType === 'suite_ticket') {
         const data = {
           value: message.SuiteTicket,
-          expires: Number(message.TimeStamp) + ticketExpiresIn
+          expires: parseInt(message.TimeStamp, 10) + ticketExpiresIn
         }
         config.saveTicket(data);
         res.reply();
       } else {
-        (callback as ExpressCallback)(message, req, res, next);
+        return (callback as ExpressCallback)(message, req, res, next);
       }
     }
   }
