@@ -3,7 +3,6 @@ import { createHash } from 'crypto'
 
 
 const BASE_URL = 'https://oapi.dingtalk.com';
-const TOKEN_EXPIRES_IN = 1000 * 60 * 60 * 2 - 10000;
 
 export interface Cache {
   value: string;
