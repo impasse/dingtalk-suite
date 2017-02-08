@@ -124,7 +124,11 @@ export default class Api {
   }
 
   async getLatestToken(): Promise<Cache> {
-    return this._get_access_token();
+    let rawToken = await this._get_access_token();
+    return {
+      value: rawToken.access_token,
+      expires: Infinity
+    };
   }
 
   async get(path, data: { access_token: string }): Promise<Result> {
