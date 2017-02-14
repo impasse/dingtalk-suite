@@ -126,8 +126,8 @@ export default class Api {
   async getLatestToken(): Promise<Cache> {
     let rawToken = await this._get_access_token();
     return {
-      value: rawToken.access_token,
-      expires: Infinity
+      value: rawToken.access_token || rawToken.value,
+      expires: rawToken.expires || rawToken.expires_in
     };
   }
 
@@ -292,19 +292,8 @@ export default class Api {
   }
 
   async getLatestJsApiTicket(): Promise<Cache> {
-    if (!this.jsapi_ticket_cache) {
-      let data = await this.getJsApiTicket();
-      this.jsapi_ticket_cache = data || { value: null, expires: 0 };
-      return this.getLatestJsApiTicket();
-    } else {
-      const now = Date.now();
-      if (this.jsapi_ticket_cache.expires <= now) {
-        let data = await this._get_jsApi_ticket();
-        this.jsapi_ticket_cache = { value: data.ticket, expires: now + data.expires_in * 1000 };
-        this.saveJsApiTicket(data);
-      }
-      return this.jsapi_ticket_cache;
-    }
+    let data = await this._get_jsApi_ticket();
+    return { value: data.ticket, expires: data.expires_in };
   }
 
   async getUrlSign(url) {
@@ -329,8 +318,10 @@ export default class Api {
     v.corpid = corpid;
     Object.assign(v, conf);
     let suite = originSuite;
+    let auth_corpid = corpid;
+    let auth_permanent_code = permanent_code;
     v._get_access_token = async function () {
-      let corpToken = await suite.getCorpToken(corpid, permanent_code);
+      let corpToken = await suite.getCorpToken(auth_corpid, auth_permanent_code);
       return { value: corpToken.access_token, expires: corpToken.expires_in };
     }
     return v;
